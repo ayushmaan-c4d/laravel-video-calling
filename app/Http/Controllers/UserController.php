@@ -10,12 +10,12 @@ class UserController extends Controller
 {
     public function updatePeerId(Request $request)
     {
-        $user = Auth::user(); // Get the currently authenticated user
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
 
         if ($user) {
             $peerId = $request->input('peer_id');
 
-            // Validate the peer ID
             $validatedData = $request->validate([
                 'peer_id' => 'required|string|max:255|unique:users,peer_id,' . $user->id,
             ]);

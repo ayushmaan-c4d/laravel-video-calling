@@ -7,51 +7,107 @@
     <title>PeerJS Video Call</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
     <style>
+        body {
+            background-color: #f4f4f4;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            margin-top: 20px;
+        }
         video {
             height: auto;
-            width: 500px;
-            margin: 10px;
-            border: 1px solid black;
+            width: 100%;
+            max-width: 480px;
+            border-radius: 8px;
+            border: 2px solid #ddd;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            margin-bottom: 15px;
         }
         .user-list-item {
             cursor: pointer;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 5px;
+            background-color: #fff;
+            transition: background-color 0.3s;
+        }
+        .user-list-item:hover {
+            background-color: #f1f1f1;
+        }
+        .logout-btn {
+            background-color: #dc3545;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .logout-btn:hover {
+            background-color: #c82333;
+        }
+        .header {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .refresh-btn {
+            display: inline-block;
+            margin-top: 5px;
+            padding: 10px 20px;
+            background-color: #343a40;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+        .refresh-btn:hover {
+            background-color: #23272b;
         }
     </style>
 </head>
 <body>
-    <div class="pd-3">
-        <h2>Welcome, {{ Auth::user()->name }}</h2>
-        <div style="text-align: right">
-            <form method="POST" action="{{ route('logout') }}">
+    <div class="container">
+        <div class="header row-1">
+            <h2>Welcome, {{ Auth::user()->name }}</h2>
+            <form method="POST" action="{{ route('logout') }}" style="display: inline;">
                 @csrf
-                <x-dropdown-link :href="route('logout')"
-                        onclick="event.preventDefault();
-                                    this.closest('form').submit();">
+                <button type="submit" class="logout-btn">
                     {{ __('Log Out') }}
-                </x-dropdown-link>
+                </button>
             </form>
         </div>
-        <h1>VIDEO CALLING</h1>
-        <h5>Current user id is <span id="peerId"></span></h5>
-        <div class="row p-3">
-            <div>
+
+        <h1 class="text-center mb-4"><strong> Video Calling </strong></h1>
+        <h5 class="text-center">Current user's Peer ID is <span id="peerId"></span></h5>
+        <hr>
+        <div class="row">
+            <div class="col-md-6 mb-3">
                 <h5>You:</h5>
                 <video id="currentUserVideo" autoplay></video>
             </div>
-            <div>
+            <div class="col-md-6 mb-3">
                 <h5>Guest:</h5>
                 <video id="remoteVideo" autoplay></video>
             </div>
         </div>
+
         <hr>
+
         <div class="p-2">
-            <h3>Select Users to Call:</h3>
+            <h3>Select User to Call:</h3>
             <ol id="userList">
                 @foreach ($users as $user)
-                  <li class="user-list-item" data-peer-id="{{ $user->peer_id }}">{{ $user->name }}</li>                
+                @if ($user->name == Auth::user()->name)
+                    @continue
+                @endif
+                  <li class="user-list-item" data-peer-id="{{ $user->peer_id }}">{{ $user->name }}</li>
                 @endforeach
             </ol>
         </div>
+
+        <a href="" class="refresh-btn">Refresh</a>
     </div>
 
     <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
@@ -65,7 +121,8 @@
 
             const peer = new Peer({
                 config: {'iceServers': [
-                  { url: 'stun:stun.l.google.com:19302' }
+                  { url: 'stun:stun1.l.google.com:19302' },
+                  { url: 'stun:stun3.l.google.com:19302' }
                 ]}
             });
 
