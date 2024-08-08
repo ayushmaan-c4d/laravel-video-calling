@@ -1,3 +1,4 @@
+{{-- 1 TO 1 VIDEO CALL vew blade --}}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -235,3 +236,40 @@
 </body>
 
 </html>
+
+{{--  --}}
+{{-- CONTROLLER --}}
+{{--  --}}
+class UserController extends Controller
+{
+    public function updatePeerId(Request $request)
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        if ($user) {
+            $peerId = $request->input('peer_id');
+
+            $validatedData = $request->validate([
+                'peer_id' => 'required|string|max:255|unique:users,peer_id,' . $user->id,
+            ]);
+
+            // update peer id
+            $user->peer_id = $peerId;
+            $user->save();
+
+            return response()->json(['success' => true, 'message' => 'Peer ID updated successfully.']);
+        }
+
+        return response()->json(['success' => false, 'message' => 'User not authenticated.'], 401);
+    }
+}
+{{-- ROUTES --}}
+Route::post('/update-peer-id', [UserController::class, 'updatePeerId'])->name('update-peer-id');
+Route::get('/dashboard', function () {
+    $users = User::all();
+    return view('dashboard',compact('users'));
+})->middleware(['auth', 'verified'])->name('dashboard');
+
+{{--  --}}
+{{-- 1 TO 1 VIDEO CALL end --}}
