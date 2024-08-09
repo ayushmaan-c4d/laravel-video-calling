@@ -30,4 +30,10 @@ class UserController extends Controller
 
         return response()->json(['success' => false, 'message' => 'User not authenticated.'], 401);
     }
+
+    public function getUsers()
+    {
+        $users = User::all();
+        return response()->json($users);
+    }
 }

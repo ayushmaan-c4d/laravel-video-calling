@@ -31,6 +31,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     Route::post('/update-peer-id', [UserController::class, 'updatePeerId'])->name('update-peer-id');
+    Route::get('/users', [UserController::class, 'getUsers']);
 });
 
 require __DIR__.'/auth.php';
