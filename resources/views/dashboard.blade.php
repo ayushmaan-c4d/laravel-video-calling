@@ -284,7 +284,7 @@
 </html> --}}
 
 
-{{-- 3 User Video CAll Try Version --}}
+{{-- Multi User upto 4 Video CAll --}}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -387,7 +387,6 @@
         }
     </style>
 </head>
-
 <body>
     <div class="container">
         <div class="header">
@@ -417,7 +416,7 @@
                 <h5>Participant 2:</h5>
                 <video id="remoteVideo2" autoplay></video>
             </div>
-            <div class="video-container" hidden>
+            <div class="video-container">
                 <h5>Participant 3:</h5>
                 <video id="remoteVideo3" autoplay></video>
             </div>
@@ -433,7 +432,7 @@
         </div>
 
         <a href="{{ route('dashboard') }}" class="refresh-btn">Refresh</a>
-        <button class="btn btn-warning">Add User</button>
+        <button class="btn btn-warning" id="addUserBtn">Add User</button>
     </div>
 
     <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
@@ -442,16 +441,18 @@
             const peerIdElement = document.getElementById('peerId');
             const userList = document.getElementById('userList');
             const currentUserVideo = document.getElementById('currentUserVideo');
-            const remoteVideos = [
-                document.getElementById('remoteVideo1'),
-                document.getElementById('remoteVideo2'),
-                document.getElementById('remoteVideo3')
-            ];
+            const remoteVideos = {
+                1: document.getElementById('remoteVideo1'),
+                2: document.getElementById('remoteVideo2'),
+                3: document.getElementById('remoteVideo3')
+            };
             let selectedPeerIds = [];
+            let videoAssignment = {};
 
             const peer = new Peer({
                 config: {
                     'iceServers': [
+                        { url: 'stun:stun.l.google.com:19302' },
                         { url: 'stun:stun1.l.google.com:19302' },
                         { url: 'stun:stun3.l.google.com:19302' },
                         { url: 'stun:stun4.l.google.com:19302' },
@@ -489,17 +490,20 @@
 
                             call.answer(mediaStream);
                             call.on('stream', remoteStream => {
-                                let assigned = false;
-                                for (const remoteVideo of remoteVideos) {
-                                    if (remoteVideo.srcObject === null) {
-                                        remoteVideo.srcObject = remoteStream;
-                                        remoteVideo.play();
-                                        assigned = true;
-                                        break;
+                                if (!videoAssignment[call.peer]) {
+                                    let availableVideoId = Object.keys(remoteVideos).find(id => !remoteVideos[id].srcObject);
+
+                                    if (availableVideoId) {
+                                        videoAssignment[call.peer] = availableVideoId;
+                                        remoteVideos[availableVideoId].srcObject = remoteStream;
+                                        remoteVideos[availableVideoId].play();
+                                    } else {
+                                        console.error('No available video element to display the stream.');
                                     }
-                                }
-                                if (!assigned) {
-                                    console.error('No available video element to display the stream.');
+                                } else {
+                                    const assignedVideoId = videoAssignment[call.peer];
+                                    remoteVideos[assignedVideoId].srcObject = remoteStream;
+                                    remoteVideos[assignedVideoId].play();
                                 }
                             });
                         })
@@ -535,17 +539,20 @@
                                 selectedPeerIds.forEach(peerId => {
                                     const call = peer.call(peerId, mediaStream);
                                     call.on('stream', remoteStream => {
-                                        let assigned = false;
-                                        for (const remoteVideo of remoteVideos) {
-                                            if (remoteVideo.srcObject === null) {
-                                                remoteVideo.srcObject = remoteStream;
-                                                remoteVideo.play();
-                                                assigned = true;
-                                                break;
+                                        if (!videoAssignment[peerId]) {
+                                            let availableVideoId = Object.keys(remoteVideos).find(id => !remoteVideos[id].srcObject);
+
+                                            if (availableVideoId) {
+                                                videoAssignment[peerId] = availableVideoId;
+                                                remoteVideos[availableVideoId].srcObject = remoteStream;
+                                                remoteVideos[availableVideoId].play();
+                                            } else {
+                                                console.error('No available video element to display the stream.');
                                             }
-                                        }
-                                        if (!assigned) {
-                                            console.error('No available video element to display the stream.');
+                                        } else {
+                                            const assignedVideoId = videoAssignment[peerId];
+                                            remoteVideos[assignedVideoId].srcObject = remoteStream;
+                                            remoteVideos[assignedVideoId].play();
                                         }
                                     });
                                 });
@@ -561,27 +568,26 @@
                 }
             }
 
-            // Function to refresh the user list
             function refreshUserList() {
                 fetch('/users')
                     .then(response => response.json())
                     .then(users => {
-                        userList.innerHTML = ''; // Clear the current list
+                        userList.innerHTML = '';
                         users.forEach(user => {
                             if (user.name !== '{{ Auth::user()->name }}') {
-                                const li = document.createElement('li');
-                                li.className = 'user-list-item';
-                                li.setAttribute('data-peer-id', user.peer_id);
-                                li.textContent = user.name;
-                                userList.appendChild(li);
+                                const listItem = document.createElement('li');
+                                listItem.textContent = user.name;
+                                listItem.classList.add('user-list-item');
+                                listItem.setAttribute('data-peer-id', user.peer_id);
+                                userList.appendChild(listItem);
                             }
                         });
                     })
-                    .catch(error => console.error('Error fetching user list:', error));
+                    .catch(error => console.error('Error fetching users:', error));
             }
 
-            // Refresh the user list every 5 seconds
-            setInterval(refreshUserList, 5000);
+            document.getElementById('addUserBtn').addEventListener('click', refreshUserList);
+            refreshUserList();
         });
     </script>
 </body>
