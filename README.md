@@ -1,4 +1,4 @@
-#This is MultiUser(upto 4 participants) Video calling in laravel with video calling according to selcted user. 
+#This is MultiUser Video calling in laravel with video calling according to selcted user. 
 
 
 Project created & build by Ayushmaan Manhas.
