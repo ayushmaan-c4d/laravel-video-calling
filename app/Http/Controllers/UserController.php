@@ -21,7 +21,7 @@ class UserController extends Controller
                 'peer_id' => 'required|string|max:255|unique:users,peer_id,' . $user->id,
             ]);
 
-            // update peer id
+            //update peer id
             $user->peer_id = $peerId;
             $user->save();
 
